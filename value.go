@@ -54,13 +54,14 @@ func Null(iso *Isolate) *Value {
 }
 
 // NewValue will create a primitive value. Supported values types to create are:
-//   string -> V8::String
-//   int32 -> V8::Integer
-//   uint32 -> V8::Integer
-//   int64 -> V8::BigInt
-//   uint64 -> V8::BigInt
-//   bool -> V8::Boolean
-//   *big.Int -> V8::BigInt
+//
+//	string -> V8::String
+//	int32 -> V8::Integer
+//	uint32 -> V8::Integer
+//	int64 -> V8::BigInt
+//	uint64 -> V8::BigInt
+//	bool -> V8::Boolean
+//	*big.Int -> V8::BigInt
 func NewValue(iso *Isolate, val interface{}) (*Value, error) {
 	if iso == nil {
 		return nil, errors.New("v8go: failed to create new Value: Isolate cannot be <nil>")
@@ -74,6 +75,12 @@ func NewValue(iso *Isolate, val interface{}) (*Value, error) {
 		defer C.free(unsafe.Pointer(cstr))
 		rtn := C.NewValueString(iso.ptr, cstr, C.int(len(v)))
 		return valueResult(nil, rtn)
+
+	case []uint8:
+		rtnVal = &Value{
+			ptr: C.NewValueUint8Array(iso.ptr, (*C.uchar)(C.CBytes(v)), C.int(len(v))),
+		}
+
 	case int32:
 		rtnVal = &Value{
 			ptr: C.NewValueInteger(iso.ptr, C.int(v)),
@@ -242,6 +249,13 @@ func (v *Value) String() string {
 	s := C.ValueToString(v.ptr)
 	defer C.free(unsafe.Pointer(s.data))
 	return C.GoStringN(s.data, C.int(s.length))
+}
+
+// Uint8Array as bytes
+func (v *Value) Uint8Array() []uint8 {
+	bytes := unsafe.Pointer(C.ValueToUint8Array(v.ptr)) // allocates copy on the heap
+	defer C.free(bytes)
+	return C.GoBytes(bytes, C.int(C.ValueToArrayLength(v.ptr)))
 }
 
 // Uint32 perform the equivalent of `Number(value)` in JS and convert the result to an
