@@ -19,7 +19,7 @@
 using namespace v8;
 
 auto default_platform = platform::NewDefaultPlatform();
-auto default_allocator = ArrayBuffer::Allocator::NewDefaultAllocator();
+ArrayBuffer::Allocator* default_allocator;
 
 const int ScriptCompilerNoCompileOptions = ScriptCompiler::kNoCompileOptions;
 const int ScriptCompilerConsumeCodeCache = ScriptCompiler::kConsumeCodeCache;
@@ -143,6 +143,8 @@ void Init() {
 #endif
   V8::InitializePlatform(default_platform.get());
   V8::Initialize();
+
+  default_allocator = ArrayBuffer::Allocator::NewDefaultAllocator();
   return;
 }
 
@@ -237,7 +239,7 @@ RtnUnboundScript IsolateCompileUnboundScript(IsolatePtr iso,
                                                  opts.cachedData.length);
   }
 
-  ScriptOrigin script_origin(ogn);
+  ScriptOrigin script_origin(iso, ogn);
 
   ScriptCompiler::Source source(src, script_origin, cached_data);
 
@@ -639,7 +641,7 @@ RtnValue RunScript(ContextPtr ctx, const char* source, const char* origin) {
     return rtn;
   }
 
-  ScriptOrigin script_origin(ogn);
+  ScriptOrigin script_origin(iso, ogn);
   Local<Script> script;
   if (!Script::Compile(local_ctx, src, &script_origin).ToLocal(&script)) {
     rtn.error = ExceptionError(try_catch, iso, local_ctx);
@@ -1707,5 +1709,44 @@ const char* Version() {
 
 void SetFlags(const char* flags) {
   V8::SetFlagsFromString(flags);
+}
+
+/********** SharedArrayBuffer & BackingStore ***********/
+
+struct v8BackingStore {
+  v8BackingStore(std::shared_ptr<v8::BackingStore>&& ptr)
+      : backing_store{ptr} {}
+  std::shared_ptr<v8::BackingStore> backing_store;
+};
+
+BackingStorePtr SharedArrayBufferGetBackingStore(ValuePtr ptr) {
+  LOCAL_VALUE(ptr);
+  auto buffer = Local<SharedArrayBuffer>::Cast(value);
+  auto backing_store = buffer->GetBackingStore();
+  auto proxy = new v8BackingStore(std::move(backing_store));
+  return proxy;
+}
+
+void BackingStoreRelease(BackingStorePtr ptr) {
+  if (ptr == nullptr) {
+    return;
+  }
+  ptr->backing_store.reset();
+  delete ptr;
+}
+
+void* BackingStoreData(BackingStorePtr ptr) {
+  if (ptr == nullptr) {
+    return nullptr;
+  }
+
+  return ptr->backing_store->Data();
+}
+
+size_t BackingStoreByteLength(BackingStorePtr ptr) {
+  if (ptr == nullptr) {
+    return 0;
+  }
+  return ptr->backing_store->ByteLength();
 }
 }
