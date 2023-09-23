@@ -594,3 +594,20 @@ func (v *Value) MarshalJSON() ([]byte, error) {
 	}
 	return []byte(jsonStr), nil
 }
+
+func (v *Value) SharedArrayBufferGetContents() ([]byte, func(), error) {
+	if !v.IsSharedArrayBuffer() {
+		return nil, nil, errors.New("v8go: value is not a SharedArrayBuffer")
+	}
+
+	backingStore := C.SharedArrayBufferGetBackingStore(v.ptr)
+	release := func() {
+		C.BackingStoreRelease(backingStore)
+	}
+
+	byte_ptr := (*byte)(unsafe.Pointer(C.BackingStoreData(backingStore)))
+	byte_size := C.BackingStoreByteLength(backingStore)
+	byte_slice := unsafe.Slice(byte_ptr, byte_size)
+
+	return byte_slice, release, nil
+}
