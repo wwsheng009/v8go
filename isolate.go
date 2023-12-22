@@ -62,6 +62,24 @@ func NewIsolate() *Isolate {
 	return iso
 }
 
+// NewIsolateHeapSize creates a new V8 isolate. Only one thread may access
+// a given isolate at a time, but different threads may access
+// different isolates simultaneously.
+// When an isolate is no longer used its resources should be freed
+// by calling iso.Dispose().
+// An *Isolate can be used as a v8go.ContextOption to create a new
+// Context, rather than creating a new default Isolate.
+func NewIsolateHeapSize(maximumHeapSizeInMb int) *Isolate {
+	initializeIfNecessary()
+	iso := &Isolate{
+		ptr: C.NewIsolateHeapSize(C.int(maximumHeapSizeInMb)),
+		cbs: make(map[int]FunctionCallback),
+	}
+	iso.null = newValueNull(iso)
+	iso.undefined = newValueUndefined(iso)
+	return iso
+}
+
 // TerminateExecution terminates forcefully the current thread
 // of JavaScript execution in the given isolate.
 func (i *Isolate) TerminateExecution() {
@@ -145,6 +163,7 @@ func (i *Isolate) Dispose() {
 	}
 	C.IsolateDispose(i.ptr)
 	i.ptr = nil
+	i.cbs = nil
 }
 
 // ThrowException schedules an exception to be thrown when returning to
