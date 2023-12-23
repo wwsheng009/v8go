@@ -172,7 +172,8 @@ extern IsolatePtr NewIsolateHeapSize(int maximum_heap_size_in_mb) {
   params.array_buffer_allocator = default_allocator;
 
   v8::ResourceConstraints constraints;
-  constraints.ConfigureDefaultsFromHeapSize(0,  1ULL * maximum_heap_size_in_mb * 1024 * 1024);
+  // constraints.ConfigureDefaultsFromHeapSize(0,  1ULL * maximum_heap_size_in_mb * 1024 * 1024);
+  constraints.set_max_old_generation_size_in_bytes(1ULL * maximum_heap_size_in_mb * 1024 * 1024);
   params.constraints = constraints;
 
   Isolate* iso = Isolate::New(params);
