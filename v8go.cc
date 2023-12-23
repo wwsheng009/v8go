@@ -167,6 +167,29 @@ IsolatePtr NewIsolate() {
   return iso;
 }
 
+extern IsolatePtr NewIsolateHeapSize(int maximum_heap_size_in_mb) {
+  Isolate::CreateParams params;
+  params.array_buffer_allocator = default_allocator;
+
+  v8::ResourceConstraints constraints;
+  constraints.ConfigureDefaultsFromHeapSize(0,  1ULL * maximum_heap_size_in_mb * 1024 * 1024);
+  params.constraints = constraints;
+
+  Isolate* iso = Isolate::New(params);
+  Locker locker(iso);
+  Isolate::Scope isolate_scope(iso);
+  HandleScope handle_scope(iso);
+
+  iso->SetCaptureStackTraceForUncaughtExceptions(true);
+
+  // Create a Context for internal use
+  m_ctx* ctx = new m_ctx;
+  ctx->ptr.Reset(iso, Context::New(iso));
+  ctx->iso = iso;
+  iso->SetData(0, ctx);
+  return iso;
+}
+
 static inline m_ctx* isolateInternalContext(Isolate* iso) {
   return static_cast<m_ctx*>(iso->GetData(0));
 }
@@ -199,7 +222,6 @@ IsolateHStatistics IsolationGetHeapStatistics(IsolatePtr iso) {
   }
   v8::HeapStatistics hs;
   iso->GetHeapStatistics(&hs);
-
   return IsolateHStatistics{hs.total_heap_size(),
                             hs.total_heap_size_executable(),
                             hs.total_physical_size(),
