@@ -26,6 +26,7 @@ deps_path = os.path.dirname(os.path.realpath(__file__))
 v8_path = os.path.join(deps_path, "v8")
 tools_path = os.path.join(deps_path, "depot_tools")
 is_windows = platform.system().lower() == "windows"
+is_linux = platform.system().lower() == "linux"
 
 gclient_sln = [
     { "name"        : "v8",
@@ -68,6 +69,11 @@ v8_enable_i18n_support=true
 icu_use_data_file=false
 v8_enable_test_features=false
 exclude_unwind_tables=true
+v8_enable_sandbox=false
+v8_enable_v8_checks=false
+v8_enable_trace_maps=false
+v8_enable_object_print=false
+v8_enable_verify_heap=false
 """
 
 def v8deps():
@@ -77,6 +83,14 @@ def v8deps():
     subprocess.check_call(cmd(["gclient", "sync", "--spec", spec]),
                         cwd=deps_path,
                         env=env)
+    # if arch is arm64 and os is linux apply patch
+    # fix aarch64-linux-gnu-gcc: error: unrecognized command-line option ‘-mmark-bti-property’
+    if args.arch == "arm64" and is_linux:
+        patch_script_path = "./patch.sh"
+        subprocess.check_call(cmd([patch_script_path]),
+                            cwd=deps_path,
+                            env=env)
+
 
 def cmd(args):
     return ["cmd", "/c"] + args if is_windows else args
