@@ -1,0 +1,4 @@
+deps/linux_x86_64/libv8.a filter=lfs diff=lfs merge=lfs -text
+deps/linux_arm64/libv8.a filter=lfs diff=lfs merge=lfs -text
+deps/darwin_x86_64/libv8.a filter=lfs diff=lfs merge=lfs -text
+deps/darwin_arm64/libv8.a filter=lfs diff=lfs merge=lfs -text

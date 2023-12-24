@@ -69,7 +69,6 @@ v8_enable_i18n_support=true
 icu_use_data_file=false
 v8_enable_test_features=false
 exclude_unwind_tables=true
-v8_enable_sandbox=false
 v8_enable_v8_checks=false
 v8_enable_trace_maps=false
 v8_enable_object_print=false
