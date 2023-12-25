@@ -174,21 +174,9 @@ ContextPtr YaoIsolateContext( IsolatePtr iso ) {
   return ctx;
 }
 
+// @todo: copy the isolate
 extern IsolatePtr YaoCopyIsolate( IsolatePtr iso ) {
-  Isolate::CreateParams params;
-  params.array_buffer_allocator = ArrayBuffer::Allocator::NewDefaultAllocator();
-  IsolatePtr new_iso = iso->New(params);
-
-  Locker locker(new_iso);
-  Isolate::Scope isolate_scope(new_iso);
-  HandleScope handle_scope(new_iso);
-
-  // Create a Context for internal use
-  m_ctx* ctx = new m_ctx;
-  ctx->ptr.Reset(new_iso, Context::New(new_iso));
-  ctx->iso = new_iso;
-  new_iso->SetData(0, ctx);
-  return new_iso;
+  return YaoNewIsolate();
 }
 
 
