@@ -171,9 +171,10 @@ extern IsolatePtr NewIsolateHeapSize(int maximum_heap_size_in_mb) {
   Isolate::CreateParams params;
   params.array_buffer_allocator = default_allocator;
 
-  v8::ResourceConstraints constraints;
-  constraints.ConfigureDefaultsFromHeapSize(0,  1ULL * maximum_heap_size_in_mb * 1024 * 1024);
-  params.constraints = constraints;
+  // v8::ResourceConstraints constraints;
+  // // constraints.ConfigureDefaultsFromHeapSize(0,  1ULL * maximum_heap_size_in_mb * 1024 * 1024);
+  // constraints.set_max_old_generation_size_in_bytes(1ULL * maximum_heap_size_in_mb * 1024 * 1024);
+  // params.constraints = constraints;
 
   Isolate* iso = Isolate::New(params);
   Locker locker(iso);
@@ -421,7 +422,7 @@ void CPUProfileDelete(CPUProfile* profile) {
   Local<Template> tmpl = tmpl_ptr->ptr.Get(iso);
 
 void TemplateFreeWrapper(TemplatePtr tmpl) {
-  tmpl->ptr.Empty();  // Just does `val_ = 0;` without calling V8::DisposeGlobal
+  tmpl->ptr.Clear();  // History: tmpl->ptr.Empty();
   delete tmpl;
 }
 

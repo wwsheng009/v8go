@@ -26,6 +26,7 @@ deps_path = os.path.dirname(os.path.realpath(__file__))
 v8_path = os.path.join(deps_path, "v8")
 tools_path = os.path.join(deps_path, "depot_tools")
 is_windows = platform.system().lower() == "windows"
+is_linux = platform.system().lower() == "linux"
 
 gclient_sln = [
     { "name"        : "v8",
@@ -68,7 +69,36 @@ v8_enable_i18n_support=true
 icu_use_data_file=false
 v8_enable_test_features=false
 exclude_unwind_tables=true
+v8_enable_v8_checks=false
+v8_enable_trace_maps=false
+v8_enable_object_print=false
+v8_enable_verify_heap=false
 """
+
+def patch_icu(file_path= os.path.join(v8_path, "third_party/icu/BUILD.gn"), replace_str="\"standard__\""):
+    print (file_path)
+    try:
+        # Read the content of the file
+        with open(file_path, 'r') as file:
+            file_content = file.read()
+
+        # Replace the specified string
+        file_content = file_content.replace("\"standard\"", replace_str)
+
+        # Write the modified content back to the file
+        with open(file_path, 'w') as file:
+            file.write(file_content)
+
+        # Remove the specified directory
+        git_dir = os.path.join(v8_path, "third_party/icu/.git")
+        print (git_dir)
+        if os.path.exists(git_dir):
+            os.system(f"rm -rf {git_dir}")
+
+        print("Patch icu success")
+
+    except Exception as e:
+        print(f"Error patching icu: {e}")
 
 def v8deps():
     spec = "solutions = %s" % gclient_sln
@@ -77,6 +107,10 @@ def v8deps():
     subprocess.check_call(cmd(["gclient", "sync", "--spec", spec]),
                         cwd=deps_path,
                         env=env)
+    # if arch is arm64 and os is linux apply patch
+    # fix aarch64-linux-gnu-gcc: error: unrecognized command-line option ‘-mmark-bti-property’
+    if args.arch == "arm64" and is_linux:
+        patch_icu()
 
 def cmd(args):
     return ["cmd", "/c"] + args if is_windows else args

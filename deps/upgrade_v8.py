@@ -23,7 +23,7 @@ import (
 )
 """
 
-CHROME_VERSIONS_URL = "https://omahaproxy.appspot.com/all.json?os=linux&channel=stable"
+CHROME_VERSIONS_URL = "https://chromiumdash.appspot.com/fetch_releases?channel=stable&platform=linux&num=6&offset=0"
 V8_VERSION_FILE = "v8_version"
 
 deps_path = os.path.dirname(os.path.realpath(__file__))
@@ -93,7 +93,14 @@ current_v8_version_installed = read_v8_version_file(deps_path)
 # Get latest version
 latest_v8_info = get_latest_v8_info()
 
-latest_stable_v8_version = latest_v8_info[0]["versions"][0]["v8_version"]
+#
+# latest_stable_v8_version = latest_v8_info[0]["hashes"]["v8"]
+# Oct 25 2023  
+# chromium: v118.0.5993.117 ( Mac, Windows, Linux )
+# v8: v11.8.172.16 
+# repo: https://chromium.googlesource.com/v8/v8.git/+/1f503dcc487fa19a5051f5ebfee58c9b81438ac0
+#
+latest_stable_v8_version = "1f503dcc487fa19a5051f5ebfee58c9b81438ac0"
 
 if current_v8_version_installed != latest_stable_v8_version:
   subprocess.check_call(["git", "fetch", "origin", latest_stable_v8_version],
