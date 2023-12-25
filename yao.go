@@ -49,7 +49,7 @@ func YaoDispose() {
 
 // Copy copies the current isolate.
 func (iso *Isolate) Copy() (*Isolate, error) {
-	if iso == nil || iso.ptr == nil {
+	if iso.ptr == nil {
 		return nil, fmt.Errorf("invalid isolate")
 	}
 	new := &Isolate{
@@ -57,6 +57,24 @@ func (iso *Isolate) Copy() (*Isolate, error) {
 		cbs: make(map[int]FunctionCallback),
 	}
 	return new, nil
+}
+
+// Context returns the current context for this isolate.
+// DO NOT CALL CLOSE, IT WILL CAUSE PANIC
+// THE CONTEXT WILL BE DISPOSED AUTOMATICALLY
+func (iso *Isolate) Context() (*Context, error) {
+	ptr := C.YaoIsolateContext(iso.ptr)
+	if ptr == nil {
+		return nil, fmt.Errorf("no current context")
+	}
+
+	ctxSeq++
+	ref := ctxSeq
+	return &Context{
+		ref: ref,
+		ptr: ptr,
+		iso: iso,
+	}, nil
 }
 
 // AsGlobal makes the isolate into a global object.

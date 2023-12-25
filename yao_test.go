@@ -41,6 +41,19 @@ func TestYaoCopyIsolate(t *testing.T) {
 	defer new.Dispose()
 }
 
+func TestYaoIsolateContext(t *testing.T) {
+	v8.YaoInit(1024)
+	defer v8.YaoDispose()
+
+	iso := v8.YaoNewIsolate()
+	defer iso.Dispose()
+
+	_, err := iso.Context()
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 func TestYaoIsolateAsGlobal(t *testing.T) {
 
 	v8.YaoInit(1024)

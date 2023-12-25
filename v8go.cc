@@ -127,6 +127,7 @@ m_unboundScript* tracked_unbound_script(m_ctx* ctx, m_unboundScript* us) {
 extern "C" {
 
 /********** Yao App Enine **********/
+
 static IsolatePtr globalIsolate = nullptr;
 
 void YaoDispose() {
@@ -136,7 +137,7 @@ void YaoDispose() {
   }
 }
 
-extern IsolatePtr YaoNewIsolate() {
+IsolatePtr YaoNewIsolate() {
   Isolate::CreateParams params;
   params.array_buffer_allocator = default_allocator;
 
@@ -156,7 +157,7 @@ extern IsolatePtr YaoNewIsolate() {
 }
 
 
-extern IsolatePtr YaoNewIsolateFromGlobal() {
+IsolatePtr YaoNewIsolateFromGlobal() {
   if (globalIsolate == nullptr) {
     return nullptr;
   }
@@ -165,16 +166,34 @@ extern IsolatePtr YaoNewIsolateFromGlobal() {
   return ptr;
 }
 
+ContextPtr YaoIsolateContext( IsolatePtr iso ) {
+  if (iso == nullptr) {
+    return nullptr;
+  }
+  m_ctx* ctx = static_cast<m_ctx*>(iso->GetData(0));
+  return ctx;
+}
 
 extern IsolatePtr YaoCopyIsolate( IsolatePtr iso ) {
   Isolate::CreateParams params;
-  params.array_buffer_allocator = default_allocator;
-  return iso->New(params);
+  params.array_buffer_allocator = ArrayBuffer::Allocator::NewDefaultAllocator();
+  IsolatePtr new_iso = iso->New(params);
+
+  Locker locker(new_iso);
+  Isolate::Scope isolate_scope(new_iso);
+  HandleScope handle_scope(new_iso);
+
+  // Create a Context for internal use
+  m_ctx* ctx = new m_ctx;
+  ctx->ptr.Reset(new_iso, Context::New(new_iso));
+  ctx->iso = new_iso;
+  new_iso->SetData(0, ctx);
+  return new_iso;
 }
 
 
 // Should call in the main thread only
-extern void YaoIsolateAsGlobal( IsolatePtr iso ) {
+void YaoIsolateAsGlobal( IsolatePtr iso ) {
   if (globalIsolate != nullptr) {
     globalIsolate->Dispose();
     globalIsolate = nullptr;

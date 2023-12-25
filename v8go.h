@@ -144,6 +144,7 @@ typedef struct {
 
 extern void YaoDispose();
 extern IsolatePtr YaoNewIsolate();
+extern ContextPtr YaoIsolateContext( IsolatePtr iso );
 extern IsolatePtr YaoCopyIsolate( IsolatePtr iso );
 extern IsolatePtr YaoNewIsolateFromGlobal();
 extern void YaoIsolateAsGlobal( IsolatePtr iso );
