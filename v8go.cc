@@ -126,6 +126,66 @@ m_unboundScript* tracked_unbound_script(m_ctx* ctx, m_unboundScript* us) {
 
 extern "C" {
 
+/********** Yao App Enine **********/
+static IsolatePtr globalIsolate = nullptr;
+
+void YaoDispose() {
+  if (globalIsolate != nullptr ) {
+    globalIsolate->Dispose();
+    globalIsolate = nullptr;
+  }
+}
+
+extern IsolatePtr YaoNewIsolate() {
+  Isolate::CreateParams params;
+  params.array_buffer_allocator = default_allocator;
+
+  Isolate* iso = Isolate::New(params);
+  Locker locker(iso);
+  Isolate::Scope isolate_scope(iso);
+  HandleScope handle_scope(iso);
+
+  iso->SetCaptureStackTraceForUncaughtExceptions(true);
+
+  // Create a Context for internal use
+  m_ctx* ctx = new m_ctx;
+  ctx->ptr.Reset(iso, Context::New(iso));
+  ctx->iso = iso;
+  iso->SetData(0, ctx);
+  return iso;
+}
+
+
+extern IsolatePtr YaoNewIsolateFromGlobal() {
+  if (globalIsolate == nullptr) {
+    return nullptr;
+  }
+
+  IsolatePtr ptr = YaoCopyIsolate(globalIsolate);
+  return ptr;
+}
+
+
+extern IsolatePtr YaoCopyIsolate( IsolatePtr iso ) {
+  Isolate::CreateParams params;
+  params.array_buffer_allocator = default_allocator;
+  return iso->New(params);
+}
+
+
+// Should call in the main thread only
+extern void YaoIsolateAsGlobal( IsolatePtr iso ) {
+  if (globalIsolate != nullptr) {
+    globalIsolate->Dispose();
+    globalIsolate = nullptr;
+  }
+  globalIsolate = YaoCopyIsolate(iso);
+}
+
+/**** ----- END ------- ****/
+
+
+
 /********** Isolate **********/
 
 #define ISOLATE_SCOPE(iso)           \
@@ -164,30 +224,6 @@ IsolatePtr NewIsolate() {
   ctx->iso = iso;
   iso->SetData(0, ctx);
 
-  return iso;
-}
-
-extern IsolatePtr NewIsolateHeapSize(int maximum_heap_size_in_mb) {
-  Isolate::CreateParams params;
-  params.array_buffer_allocator = default_allocator;
-
-  // v8::ResourceConstraints constraints;
-  // // constraints.ConfigureDefaultsFromHeapSize(0,  1ULL * maximum_heap_size_in_mb * 1024 * 1024);
-  // constraints.set_max_old_generation_size_in_bytes(1ULL * maximum_heap_size_in_mb * 1024 * 1024);
-  // params.constraints = constraints;
-
-  Isolate* iso = Isolate::New(params);
-  Locker locker(iso);
-  Isolate::Scope isolate_scope(iso);
-  HandleScope handle_scope(iso);
-
-  iso->SetCaptureStackTraceForUncaughtExceptions(true);
-
-  // Create a Context for internal use
-  m_ctx* ctx = new m_ctx;
-  ctx->ptr.Reset(iso, Context::New(iso));
-  ctx->iso = iso;
-  iso->SetData(0, ctx);
   return iso;
 }
 
