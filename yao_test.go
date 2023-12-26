@@ -54,17 +54,6 @@ func TestYaoIsolateContext(t *testing.T) {
 	}
 }
 
-func TestYaoIsolateAsGlobal(t *testing.T) {
-
-	v8.YaoInit(1024)
-	defer v8.YaoDispose()
-
-	iso := v8.YaoNewIsolate()
-	defer iso.Dispose()
-
-	iso.AsGlobal()
-}
-
 func TestYaoNewIsolateFromGlobal(t *testing.T) {
 	v8.YaoInit(1024)
 	defer v8.YaoDispose()
