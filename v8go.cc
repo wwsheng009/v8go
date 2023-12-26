@@ -939,6 +939,7 @@ ValuePtr NewValueUint8Array(IsolatePtr iso, const uint8_t *v, int len) {
   Local<ArrayBuffer> arbuf = ArrayBuffer::New(iso, std::move(bs));
 
   m_value* val = new m_value;
+  val->id = 0;
   val->iso = iso;
   val->ctx = ctx;
   val->ptr = Persistent<Value, CopyablePersistentTraits<Value>>(
