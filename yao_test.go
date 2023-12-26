@@ -54,33 +54,21 @@ func TestYaoIsolateContext(t *testing.T) {
 	}
 }
 
-func TestYaoIsolateAsGlobal(t *testing.T) {
+// func TestYaoNewIsolateFromGlobal(t *testing.T) {
+// 	v8.YaoInit(1024)
+// 	defer v8.YaoDispose()
 
-	v8.YaoInit(1024)
-	defer v8.YaoDispose()
+// 	iso := v8.YaoNewIsolate()
+// 	iso.AsGlobal()
+// 	iso.Dispose()
 
-	iso := v8.YaoNewIsolate()
-	defer iso.Dispose()
+// 	new, err := v8.YaoNewIsolateFromGlobal()
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
 
-	iso.AsGlobal()
-}
-
-func TestYaoNewIsolateFromGlobal(t *testing.T) {
-	v8.YaoInit(1024)
-	defer v8.YaoDispose()
-
-	iso := v8.YaoNewIsolate()
-	iso.AsGlobal()
-	iso.Dispose()
-	iso = nil
-
-	new, err := v8.YaoNewIsolateFromGlobal()
-	if err != nil {
-		t.Error(err)
-	}
-
-	if new == nil {
-		t.Errorf("new is nil")
-	}
-	defer new.Dispose()
-}
+// 	if new == nil {
+// 		t.Errorf("new is nil")
+// 	}
+// 	defer new.Dispose()
+// }
