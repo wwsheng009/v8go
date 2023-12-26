@@ -130,6 +130,7 @@ extern "C" {
 
 static IsolatePtr globalIsolate = nullptr;
 
+// Clean up the global isolate
 void YaoDispose() {
   if (globalIsolate != nullptr ) {
     globalIsolate->Dispose();
@@ -137,6 +138,7 @@ void YaoDispose() {
   }
 }
 
+// @todo: create from snapshot
 IsolatePtr YaoNewIsolate() {
   Isolate::CreateParams params;
   params.array_buffer_allocator = default_allocator;
@@ -156,7 +158,7 @@ IsolatePtr YaoNewIsolate() {
   return iso;
 }
 
-
+// @todo: Remove after snapshot works
 IsolatePtr YaoNewIsolateFromGlobal() {
   if (globalIsolate == nullptr) {
     return nullptr;
@@ -166,6 +168,7 @@ IsolatePtr YaoNewIsolateFromGlobal() {
   return ptr;
 }
 
+// @todo: use internal context, after snapshot works
 ContextPtr YaoIsolateContext( IsolatePtr iso ) {
   if (iso == nullptr) {
     return nullptr;
@@ -180,6 +183,7 @@ extern IsolatePtr YaoCopyIsolate( IsolatePtr iso ) {
 }
 
 
+// @todo: remove after snapshot works
 // Should call in the main thread only
 void YaoIsolateAsGlobal( IsolatePtr iso ) {
   if (globalIsolate != nullptr) {
