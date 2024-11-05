@@ -1032,6 +1032,18 @@ ValuePtr NewValueBigIntFromUnsigned(IsolatePtr iso, uint64_t v) {
   return tracked_value(ctx, val);
 }
 
+ValuePtr NewValueExternal(IsolatePtr iso, void* v) {
+  ISOLATE_SCOPE_INTERNAL_CONTEXT(iso);
+  m_value* val = new m_value;
+  val->id = 0;
+  val->iso = iso;
+  val->ctx = ctx;
+  val->ptr = Persistent<Value, CopyablePersistentTraits<Value>>(
+      iso, External::New(iso, v));
+  return tracked_value(ctx, val);
+}
+
+
 RtnValue NewValueBigIntFromWords(IsolatePtr iso,
                                  int sign_bit,
                                  int word_count,
@@ -1081,6 +1093,15 @@ int32_t ValueToInt32(ValuePtr ptr) {
 int64_t ValueToInteger(ValuePtr ptr) {
   LOCAL_VALUE(ptr);
   return value->IntegerValue(local_ctx).ToChecked();
+}
+
+uint64_t ValueToExternal(ValuePtr ptr) {
+  LOCAL_VALUE(ptr);
+  if (value->IsExternal()) {
+    Local<External> external = value.As<External>();
+    return reinterpret_cast<uint64_t>(external->Value());
+  }
+  return 0;
 }
 
 double ValueToNumber(ValuePtr ptr) {

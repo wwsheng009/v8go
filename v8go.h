@@ -225,6 +225,8 @@ extern RtnValue NewValueBigIntFromWords(IsolatePtr iso_ptr,
                                         int sign_bit,
                                         int word_count,
                                         const uint64_t* words);
+extern ValuePtr NewValueExternal(IsolatePtr iso_ptr, void* v); // Yao App Engine: Implement NewValueExternal to Share Golang Structs
+
 void ValueRelease(ValuePtr ptr);
 extern RtnString ValueToString(ValuePtr ptr);
 extern uint8_t* ValueToUint8Array(ValuePtr ptr);
@@ -236,6 +238,7 @@ int64_t ValueToInteger(ValuePtr ptr);
 double ValueToNumber(ValuePtr ptr);
 RtnString ValueToDetailString(ValuePtr ptr);
 uint32_t ValueToUint32(ValuePtr ptr);
+uint64_t ValueToExternal(ValuePtr ptr); // Yao App Engine: Implement ValueToExternal to Share Golang Structs
 extern ValueBigInt ValueToBigInt(ValuePtr ptr);
 extern RtnValue ValueToObject(ValuePtr ptr);
 int ValueSameValue(ValuePtr ptr, ValuePtr otherPtr);
