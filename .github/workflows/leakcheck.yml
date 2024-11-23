@@ -19,8 +19,13 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          lfs: true
+
+      - name: Unzip libv8
+        run: |
+          files=$(find . -name "libv8.a.zip")
+          for file in $files; do
+            unzip -o -d $(dirname $file) $file
+          done
 
       - name: Go Test
         env:
