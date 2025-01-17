@@ -126,6 +126,9 @@ func (c *Context) Close() {
 	C.ContextFree(c.ptr)
 	c.ptr = nil
 }
+func (c *Context) IsClosed() bool {
+	return c == nil || c.ptr == nil
+}
 
 func (c *Context) register() {
 	ctxMutex.Lock()
