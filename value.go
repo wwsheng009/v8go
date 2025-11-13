@@ -560,13 +560,17 @@ func (v *Value) ReleaseObject() {
 		if err != nil {
 			return
 		}
+		defer release.Release()
 
 		if release.IsFunction() {
 			fn, err := release.AsFunction()
 			if err != nil {
 				return
 			}
-			fn.Call(v)
+			result, _ := fn.Call(v)
+			if result != nil {
+				result.Release()
+			}
 		}
 	}
 }
